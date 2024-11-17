@@ -2,7 +2,7 @@
 ## 2.1 Python可视化
 
 ### 2.1.1 Matplotlib基础
-Matplotlib是Python最基础的可视化库，提供了极高的自由度和完整的控制能力。科研可视化来说，我们无需用到过于复杂的代码逻辑，因此本节仅关注较为基础的功能。
+Matplotlib是Python最基础的可视化库，提供了极高的自由度和完整的控制能力。由于论文中常用的可视化方法无需处理复杂的代码逻辑，本节仅关注较为基础的功能。
 
 **安装与基本使用**
 
@@ -17,7 +17,7 @@ pip install matplotlib
 import matplotlib.pyplot as plt
 ```
 
-首先创建一个简单的折线图
+首先我们先创建一个简单的折线图
 ```python
 import matplotlib.pyplot as plt
 
@@ -29,7 +29,7 @@ plt.plot(x, y)
 plt.show()
 ```
 
-在此基础之上，我们可以设置标题和标签
+在此基础之上，通过命令设置标题和标签
 
 ```python
 plt.plot(x, y)
@@ -100,7 +100,7 @@ plt.show()
 
 
 ### 2.1.2 学术风格的应用
-对于科研论文的绘图来说，制图不仅仅是，还有很多规范需要考虑到。我们列举一些比较常用的注意事项。
+对于科研论文的绘图来说，制图不仅仅是把图片生成出来就万事大吉，还有很多规范需要考虑到。我们列举一些比较常用的注意事项。
 
 我们仍然以之前的数据为例：
 
@@ -186,131 +186,264 @@ plt.show()
 ```
 
 
-
 ## 2.2 R语言可视化
 
 ### 2.2.1 ggplot2基础
 
-首先下载并安装R语言，，可参考https://cloud.r-project.org/。然后下载RStudio，参考https://posit.co/download/rstudio-desktop/。
+首先，可以在https://cloud.r-project.org/ 这个网站下载并安装R语言。然后下载RStudio，具体的RStudio的配置可以在https://posit.co/download/rstudio-desktop/ 下载后参考内置的tutorial。
 
-在RStudio的界面当中，安装ggplot2库，也可以按住归纳上。
+在RStudio的界面当中，安装ggplot2库，其余可选的库也可以按需安装。
 
 ```r
-# 安装ggplot2（如果尚未安装）
+# 安装ggplot2
 install.packages("ggplot2")
+# 可选：安装dplyr包，用于数据处理
+install.packages("dplyr")
 
 # 加载ggplot2包
 library(ggplot2)
-
-# 可选：加载dplyr包用于数据处理
-install.packages("dplyr")
 library(dplyr)
 
 ```
-我们仍然从创建一个基础图形开始。在ggplot中，我们可以使用类似ggplot(data, aes(x, y))的方法，实现指定数据和美学映射。
+
+在ggplot的语法中，```data```, ```aesthetics```和```geoms```是每张图的三个关键组成部分。
+ ```geom()```函数规定在图形上放置什么样的几何对象(点、线、条、阴影区域)
+
+在这里，我们可以使用类似```ggplot(data, aes(x, y))```的方法，实现指定数据和美学映射，其结构大致如下：
+```r
+ggplot(data = <数据集>, aes(<美学映射>)) + 
+  <几何对象> + 
+  <标度调整> + 
+  <坐标系统> + 
+  <主题> + 
+  <其他组件>
+```
+
+我们仍然从创建一个基础的图形开始练手。下面的代码利用创建的数据可视化了一个简单的散点图：
 
 ```r
-# 示例数据
-time <- c(0, 2, 4, 6, 8, 10)  # 时间点（小时）
-cell_density <- c(1.5, 3.0, 5.2, 8.0, 12.1, 15.0)  # 细胞密度（cells/mL）
-error <- c(0.1, 0.2, 0.2, 0.3, 0.4, 0.5)  # 误差
+library(ggplot2)
 
-# 创建数据框
-data <- data.frame(time, cell_density, error)
+# 创建示例数据
+df <- data.frame(
+  Group = rep(c("A", "B", "C"), each = 20),
+  Value = c(rnorm(20, mean = 5), rnorm(20, mean = 7), rnorm(20, mean = 6))
+)
+# 查看数据
+head(df)
 
-# 基础折线图
-ggplot(data, aes(x = time, y = cell_density)) +
-  geom_line() +
+ggplot(data = df, aes(x = Group, y = Value)) +
   geom_point()
 
 ```
+让我们直接看看效果
 
-如果了解R语言基础语法的话可以发现，相比与matplotlib，ggplot2是基于图形语法的，更注重声明式绘图方式。
+![image](images/Rplot_basic_01.png)
+
+跟刚刚的语法类似，下面让我来画一个论文中常见的箱线图。
+
+
+```r
+library(ggplot2)
+
+# 创建示例数据
+df <- data.frame(
+  Group = rep(c("A", "B", "C"), each = 20),
+  Value = c(rnorm(20, mean = 5), rnorm(20, mean = 7), rnorm(20, mean = 6))
+)
+
+# 查看数据
+head(df)
+
+ggplot(data = df, aes(x = Group, y = Value, fill = Group)) +
+  geom_boxplot() +
+  theme_bw() +
+  labs(title = "箱线图", x = "组别", y = "数值")
+
+```
+
+![image](images/Rplot_basic_02.png)
+
+仍是利用刚才的数据，我们创建了一个默认配置的箱线图。值得注意的是，不同的工具画出的箱线图可能会有不同的效果，我们可以根据自己的需要来调整。
 
 
 
 ### 2.2.2 学术风格的优化
 
+对于刚刚所生成的箱线图，我们可以对他进一步的修改，将其优化为更符合学术期刊标准的图表。这次，我们换上ggplot2所绑定的我mpg数据，这是一个[覆盖了1999年至2008年38款热门车型燃油经济性数据的库](https://ggplot2.tidyverse.org/reference/mpg.html) ，我们可以让图示内呈现的内容更多。
 
-按照此前在matplotlib所述的优化，我们同样可以对ggplot2进行优化，包括：
+按照此前在matplotlib所述的优化，我们同样可以对ggplot2进行优化。如果了解R语言基础语法的话可以发现，相比与matplotlib，ggplot2是基于图形语法的，更注重声明式绘图方式。
 
-减少网格线的干扰：使用细且浅色的网格线。
+
+我们可以按照如下的语法自定义一个theme的样式：
+
 ```r
-ggplot(data, aes(x = time, y = cell_density)) +
-  geom_line(color = "#1f77b4", size = 1.5) +
-  geom_point(color = "#ff7f0e", size = 3) +
-  geom_errorbar(aes(ymin = cell_density - error, ymax = cell_density + error),
-                width = 0.2, color = "gray50", size = 0.5) +
-  labs(title = "Cell Density Over Time",
-       x = "Time (hours)",
-       y = "Cell Density (cells/mL)") +
-  theme_minimal(base_family = "Times New Roman") +
+# 自定义主题
+mytheme <- theme_prism() +  # Graphpad Prism 风格
   theme(
-    text = element_text(size = 12),
-    plot.title = element_text(size = 14, face = "bold"),
-    axis.title = element_text(size = 12),
-    axis.text = element_text(size = 10),
-    panel.grid.major = element_line(color = "gray80", size = 0.5),
-    panel.grid.minor = element_blank(),
-    legend.position = "none"
-  ) +
-  xlim(0, 10) +
-  ylim(0, 16) +
-  geom_text(aes(label = cell_density),
-            vjust = -0.5, size = 3, color = "#1f77b4")
+    strip.text = element_text(size = 18),  # 分面标题的字体大小
+    axis.line = element_line(color = "black", linewidth = 0.4),  # 轴线颜色和粗细
+    axis.text.y = element_text(color = "black", size = 18),  # y 轴刻度标签颜色和大小
+    axis.text.x = element_text(color = "black", size = 16),  # x 轴刻度标签颜色和大小
+    axis.title = element_text(color = "black", size = 20),  # 轴标题颜色和大小
+    panel.grid.minor = element_blank(),  # 移除次要网格线
+    panel.grid.major = element_line(linewidth = 0.2, color = "#e5e5e5"),  # 主要网格线样式
+    legend.position = "none"  # 移除图例
+  )
 ```
 
 
-选择专业配色：确保颜色对比度高且色盲友好。  
+```theme_prism()```表示应用 Graphpad Prism 风格的主题。我们也可以根据需求应用其他的主题。  
+```theme(...)```进一步自定义图表的各个元素，如字体大小、颜色、网格线等。
+strip.text：调整分面标题的字体大小。
 
 
-保持图形简洁：避免不必要的装饰性元素。  
-优化标注：仅标注关键数据点或使用更智能的标注方法。
+误差条是数据图中常用的样式，我们可以在箱线图的上下添加错误条，语法如下：
+```r
+stat_boxplot(
+  geom = "errorbar", # 使用错误条的几何对象
+  position = position_dodge(width = 0.4), # 调整位置，以避免重叠。
+  width = 0.1 # 误差条的宽度
+)
+```
 
-我们将所有
+
+接下来让我们来添加箱线图本体：
+```r
+geom_boxplot(
+  position = position_dodge(width = 0.4),
+  fill = "white",            # 设置箱体填充颜色为白色
+  color = "black",           # 设置箱体边框颜色为黑色
+  outlier.shape = NA,        # 隐藏箱线图中的异常值
+  linewidth = 0.5,           # 设置箱体边框线宽
+  coef = 0                   # 设置上下须线到最小值和最大值
+)
+```
+为了与数据点产生对比，我将数箱体设置为白色。
+
+
+添加抖动散点：
+```r
+geom_point(
+  aes(fill = class),         # 根据类别填充颜色
+  pch = 21,                  # 设置点的形状为带边框的圆形
+  size = 3,                  # 点的大小
+  position = position_jitter(width = 0.2),  # 添加水平抖动以避免重叠
+  color = "black"            # 点的边框颜色为黑色
+)
+```
+
+其中，```position = position_jitter(width = 0.2)```并非必要，但点数较为密集的时候，可以添加水平抖动，避免数据点重叠，让展示更美观。
+
+
+添加标签与自定义颜色：
 
 ```r
-library(ggplot2)
-library(dplyr)
+labs(
+  title = "不同车型的高速公路燃油效率分布",
+  x = "车型",
+  y = "高速公路每加仑英里数"
+)
 
-# 示例数据
-time <- c(0, 2, 4, 6, 8, 10)
-cell_density <- c(1.5, 3.0, 5.2, 8.0, 12.1, 15.0)
-error <- c(0.1, 0.2, 0.2, 0.3, 0.4, 0.5)
-data <- data.frame(time, cell_density, error)
+scale_fill_manual(values = c("#db6968", "#4d97cd", "#f8984e", "#459943", "#7f8c8d", "#9b59b6", "#2ecc71"))
+```
 
-# 创建图形
-p <- ggplot(data, aes(x = time, y = cell_density)) +
-  geom_line(color = "#1f77b4", size = 1.5) +
-  geom_point(color = "#ff7f0e", size = 3) +
-  geom_errorbar(aes(ymin = cell_density - error, ymax = cell_density + error),
-                width = 0.2, color = "gray50", size = 0.5) +
-  labs(title = "Cell Density Over Time",
-       x = "Time (hours)",
-       y = "Cell Density (cells/mL)") +
-  theme_minimal(base_family = "Times New Roman") +
+scale_fill_manual()：手动设置填充颜色。
+values：指定每个 class 的颜色。确保颜色数量与 class 的类别数量一致。
+
+
+为了防止过长的标签与其他标签重合，可以应用自定义主题并旋转 x 轴标签：
+```r
+# 应用自定义主题
+mytheme +
+# 旋转 x 轴标签以避免重叠
+theme(
+  axis.text.x = element_text(angle = 45, hjust = 1)
+)
+```
+
+
+
+将所有优化整合到一起，可以形成如下的代码：
+
+```r
+# 安装并加载必要的包
+install.packages("ggplot2")
+install.packages("ggthemes")
+install.packages("ggprism")
+
+library(ggplot2)   # 数据可视化
+library(ggthemes)  # 额外的主题
+library(ggprism)   # Graphpad Prism 风格主题
+
+# 定义自定义主题
+mytheme <- theme_prism() +  # 使用 Graphpad Prism 风格主题
   theme(
-    text = element_text(size = 12),
-    plot.title = element_text(size = 14, face = "bold"),
-    axis.title = element_text(size = 12),
-    axis.text = element_text(size = 10),
-    panel.grid.major = element_line(color = "gray80", size = 0.5),
-    panel.grid.minor = element_blank(),
-    legend.position = "none"
+    strip.text = element_text(size = 18),  # 分面标题的字体大小
+    axis.line = element_line(color = "black", linewidth = 0.4),  # 轴线颜色和粗细
+    axis.text.y = element_text(color = "black", size = 18),  # y 轴刻度标签颜色和大小
+    axis.text.x = element_text(color = "black", size = 16),  # x 轴刻度标签颜色和大小
+    axis.title = element_text(color = "black", size = 20),  # 轴标题颜色和大小
+    panel.grid.minor = element_blank(),  # 移除次要网格线
+    panel.grid.major = element_line(linewidth = 0.2, color = "#e5e5e5"),  # 主要网格线样式
+    legend.position = "none"  # 移除图例
+  )
+
+# 加载 mpg 数据集
+data(mpg)
+
+# 创建优化后的箱线图
+p <- ggplot(mpg, aes(x = class, y = hwy)) +
+  # 添加错误条（箱线图上下的短横线）
+  stat_boxplot(
+    geom = "errorbar",
+    position = position_dodge(width = 0.4),
+    width = 0.1
   ) +
-  xlim(0, 10) +
-  ylim(0, 16) +
-  geom_text(data = data %>% filter(cell_density == min(cell_density) | cell_density == max(cell_density)),
-            aes(label = cell_density),
-            vjust = -0.5, size = 3, color = "#1f77b4")
+  # 添加箱线图本体
+  geom_boxplot(
+    position = position_dodge(width = 0.4),
+    fill = "white",            # 设置箱体填充颜色为白色
+    color = "black",           # 设置箱体边框颜色为黑色
+    outlier.shape = NA,        # 隐藏箱线图中的异常值
+    linewidth = 0.5,           # 设置箱体边框线宽
+    coef = 0                   # 设置上下须线到最小值和最大值
+  ) +
+  # 添加抖动散点
+  geom_point(
+    aes(fill = class),         # 根据类别填充颜色
+    pch = 21,                  # 设置点的形状为带边框的圆形
+    size = 3,                  # 点的大小
+    position = position_jitter(width = 0.2),  # 添加水平抖动以避免重叠
+    color = "black"            # 点的边框颜色为黑色
+  ) +
+  # 设置标签
+  labs(
+    title = "不同车型的高速公路燃油效率分布",
+    x = "车型",
+    y = "高速公路每加仑英里数"
+  ) +
+  # 自定义填充颜色（确保颜色数量与类别数量匹配）
+  scale_fill_manual(values = c("#db6968", "#4d97cd", "#f8984e", "#459943", "#7f8c8d", "#9b59b6", "#2ecc71")) +
+  # 应用自定义主题
+  mytheme +
+  # 旋转 x 轴标签以避免重叠
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
 
 # 显示图形
 print(p)
 
-# 导出图形
-ggsave("cell_density_optimized.pdf", plot = p, width = 6, height = 4, dpi = 300, device = cairo_pdf)
-
 ```
+
+![image](images/Rplot_boxplot.png)
+
+
+
+该数据其实还有更多的优化余地，但是出于篇幅，我们先介绍到这里。
+
+
 
 
 
@@ -410,6 +543,10 @@ ggsave("cell_density_optimized.pdf", plot = p, width = 6, height = 4, dpi = 300,
 数据处理与初步探索（Python + Matplotlib）
 
 在Python中进行大规模数据的预处理和初步可视化，利用Matplotlib的灵活性和交互式能力，快速识别数据中的模式和异常。
+
+
+
+在下一章里，我们会使用一些实际数据来做可视化的训练。
 
 
 推荐阅读：
