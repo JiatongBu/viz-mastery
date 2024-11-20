@@ -64,4 +64,79 @@ Python工具如Pandas可用于常规数据分析，涵盖基本统计、数据�
 
 
 
+### 3.3 高维数据可视化
+
+#### 3.3.1 高维数据及降维方法
+**什么是高维数据？**  
+
+对于高维数据，我们可以分两部分来的定义与区分  
+1.高维数据：指具有多个独立属性的结构化数据（一般是指超过3维的数据），比如基因表达矩阵、图像特征向量等。  
+2.多变量数据：指具有多个相关属性的观测数据，例如气象数据（温度、湿度、风速之间可能有依赖关系）。
+
+与常规的低维数据相比，高维数据的可视化所面临的挑战是人类感知维度的限制，以解释数据复杂性，呈现单个数据点的各属性的数据值分布；以及比较多个高维数据点之间的属性关系，从而提高高维数据的分类、聚类、关联、异常点检测、属性选择、属性关联分析和属性简化等任务的效率。因此，我们很多时候需要降维的方法来对数据进行可视化。  
+
+
+**降维技术概述**
+
+降维的目标有两个：一是保留数据的主要结构或分布。二是减少数据噪声，提升可视化效果。
+数据降维方法有很多，本文对具体的降维方法的原则不做赘述，仅对其做基本的介绍。常见的降维方法有：  
+1.主成分分析（PCA）
+            简介：线性变换，寻找方差最大的主轴。
+            实现：使用R和Python分别演示PCA。  
+2.t-SNE（t-分布邻域嵌入）
+            简介：适合非线性数据，可视化局部结构。
+            注意事项：参数调优（如perplexity）对结果的影响。
+            代码演示：R包Rtsne和Python库scikit-learn。  
+3.非负矩阵分解（Nonnegative Matrix Factorization, NMF）
+
+    核心思想：
+        将原始矩阵分解为两个非负矩阵的乘积（特征和权重）。
+        强调数据的可解释性。
+    优点：
+        可解释性强，分解结果自然对应现实中的非负属性（如图像的像素强度、文档的词频）。
+        适合稀疏数据。
+    局限性：
+        不适合含有负值的数据。
+        假设非负性，可能损失部分全局信息。
+    应用场景：
+        文本分析（如主题模型）。
+        图像处理。
+
+每一种方法在python和R里都可以找到对应的包来实现。
+本节我们就以PCA为例，来实现高维数据的可视化。
+
+### 3.3.2 高维数据可视化的实现
+
+我们在python里面加载鸢尾花数据集iris，
+
+```python
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+plt.rcParams['font.family'] = 'Times New Roman'
+plt.rcParams['axes.unicode_minus'] = False
+import warnings
+warnings.filterwarnings("ignore")
+from sklearn.datasets import load_iris
+# 鸢尾花数据集
+iris = load_iris()
+df_iris = pd.DataFrame(data=iris.data, columns=iris.feature_names)
+df_iris['target'] = iris.target
+df_iris
+```
+
+
+这段代码的主要目的是加载 sklearn 提供的鸢尾花（Iris）数据集，并将其转换为一个 pandas.DataFrame 数据结构
+
+
+
+font.family: 设置字体为 Times New Roman。
+axes.unicode_minus: 设置为 False 以确保负号可以正确显示。
+
+
+
+
+
+
 
