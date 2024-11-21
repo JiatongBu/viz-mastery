@@ -4,11 +4,19 @@
 ### 3.1 时序数据可视化
 
 #### 3.1.1 时序数据的特点
-时间序列是非常常见的数据。一般由表示时间的x轴和表示数据值的y轴组成，使用折线图在显示数据随时间推移的进展时很常见。它在提取诸如趋势和季节性影响等信息方面有一些好处。
+时间序列是非常常见的数据。一般由表示时间的x轴和表示数据值的y轴组成，使用折线图在显示数据随时间推移的进展时很常见。它在提取诸如趋势和季节性影响等信息方面有一些好处。目前，时序数据常用的图表类型有： 
+1. 折线图：最常用的时序数据可视化方式，适合展示数据随时间的变化趋势。
+2. 面积图：类似于折线图，但填充了下方区域，适合展示累积数据或强调总量变化。
+3. 柱状图：适合展示离散时间点的数据对比，如月度销售额。
 
 
+**注意事项**  
+进行时序数据的可视化时，有两点特别需要注意，一是时间轴的设计。需要确保时间轴清晰且等间隔，避免时间跨度过大或过小导致信息丢失。我们要注意标注重要时间点或事件，以便理解数据变化的背景。
+对于超长时间可视化的一些技巧，可以参考这篇文章 [超长时间序列数据可视化的6个技巧](https://mp.weixin.qq.com/s/q-DKrhi3bBdLHy5HGXQM4w)
 
+还有一点需要注意的是处理多重时间序列的问题。我们可以使用不同颜色、线型或符号区分多条数据线，保持图表的清晰度。如果数据过多，可考虑分多个图表展示。
 
+关于什么是好的时序数据可视化，这篇文章做了一些介绍 [Reducing Cognitive Load for Clearer Insights](https://python.plainenglish.io/effective-time-series-visualization-reducing-cognitive-load-for-clearer-insights-f91ee7d6ac1a)
 
 
 #### 3.1.2 时序数据的可视化
@@ -23,25 +31,106 @@
 
 
 
-要在 R 中处理时间序列，首先需要将其置于时间序列对象中。这是一种 R 的结构，包含观察值及其对应的日期信息。一旦将数据放入时间序列对象中，就可以使用众多函数来操作、建模和绘制这些数据。
+本文的作者在Github上给出了论文所有可视化配图的开源代码[CCS_article](https://github.com/poletresearch/CCS_article)，以R文件的独立形式存放。对应的这张图的生成代码为[fig2_formative.R](code/fig2_formative.R).
 
-R 提供了多种用于存储时间序列的结构（详见侧栏“R 中的时间序列对象”）。在本章中，我们将使用由 xts 包提供的 xts 类。它支持规则和非规则间隔的时间序列，并提供了许多操作时间序列数据的函数。
-R 中的时间序列对象
 
-R 提供了许多用于存储时间序列数据的对象，很容易让人感到困惑。基础 R 包含了 ts 对象，用于存储具有规则时间间隔的单一时间序列，以及 mts 对象，用于存储具有规则时间间隔的多时间序列。
+该图包含了三幅图像，图a为时序图，图b为容量对比图，图c为散点图和等高线图。因此我们本节主要关注图a。
 
-zoo 包提供了一个类，可以存储具有不规则时间间隔的时间序列，而 xts 包在 zoo 类的基础上扩展了更多支持函数。此外，还有一些常用的格式，如 tsibble、timeSeries、irts 和 tis。幸运的是，tsbox 包提供了将数据框转换为任意格式的函数，并能在不同的时间序列格式之间进行转换。
-
-要创建一个 xts 时间序列，可以使用以下代码：
-
+首先我们加载必要的包和数据，
 ```r
-library(xts)  
-myseries <- xts(data, index)  
+# 必要包
+library(tidyverse)
+
+# 读取数据
+data <- read.csv("C:/Users/c3388/Downloads/CCS_article-main/CCS_Projects_database.csv") 
+```
+接着我们做一些数据处理，来提取特定年份的项目数据。
+```r
+pipeline_by_year <- function(data, year) {
+  filtered_data <- data %>% 
+    filter((Status %in% c("Completed", "Not finished", "Active") & FacilityStart <= year & 
+              (FacilityEnd >= year | is.na(FacilityEnd))) |
+             (Status %in% c("Not started", "Completed", "Not finished", "Active") & ProjectStart <= year & 
+                ActualProjectEnd >= year) |
+             (Status == "Future" & ProjectStart <= year))
+  filtered_data$actyear <- year
+  return(filtered_data)
+}
 ```
 
+对 2002 到 2022 年的每一年调用 pipeline_by_year，生成逐年项目数据。用一个综合数据框 years_all，记录了所有年份的项目动态。
 
+```r
+years_all <- data.frame(matrix(ncol = 26, nrow = 0))  # 初始化空数据框
+colnames(years_all) <- colnames(data)
 
-其中，data 是一个包含数值的向量，表示观测值；index 是一个日期向量，表示这些值的观测时间。以下示例展示了用法：数据是从 2018 年 1 月开始的两年的月度销售数据。
+for (year in 2002:2022) {
+  year_data <- pipeline_by_year(data, year)
+  years_all <- rbind(years_all, year_data)
+}
+```
+在综合数据框中新增两列：   
+```status_year```: 标记项目在每年的状态。  
+```mtpa```: 根据 status_year 填充实际或计划碳捕获量。  
+然后按部门、年份聚合数据。
+```r
+years_all <- years_all %>% 
+  mutate(status_year = 
+           ifelse(Status %in% c("Completed", "Not finished", "Active") & FacilityStart <= actyear & 
+                    (FacilityEnd >= actyear | is.na(FacilityEnd)), "Operational", "In Development")) %>%
+  mutate(mtpa = ifelse(status_year == "Operational", ActualCapacity, AnnouncedCapacity))
+
+h2 <- years_all %>% 
+  subset(!is.na(Sector) & !is.na(mtpa)) %>%
+  group_by(Sector, status_year, actyear) %>% 
+  summarise(mtpa = sum(mtpa)) %>% 
+  mutate(mtpa = mtpa * 365 / 1000000000)
+  ```
+接下来是可视化的部分，
+我们先设置美学映射（aes），x 轴表示年份（从 2002 到 2022），y 轴表示碳捕获量（Gt/yr），填充颜色表示不同的 CCS 部门（如 "Fossil Electricity", "BECCS Industry" 等）。
+
+```r
+panelA <- ggplot(h2, aes(actyear, mtpa, fill = Sector)) +
+```
+用透明的条形图展示 "In Development" 状态项目的碳捕获量。
+```r
+geom_bar(data = subset(h2, status_year != "Operational"), 
+         aes(x = actyear + 0.35, y = mtpa, 
+             fill = factor(Sector, levels = c("NGP", "Industry: Process", "Fossil Industry", 
+                                              "Fossil Electricity", "BECCS Electricity", "BECCS Industry", "DACCS"))),  
+         stat = "identity", inherit.aes = FALSE, width = 0.35, alpha = .7) +
+
+```
+添加 "Operational" 状态的条形图，用黑边加以区分。
+```r
+geom_bar(data = subset(h2, status_year == "Operational"), 
+         aes(x = actyear, y = mtpa, 
+             fill = factor(Sector, levels = c("NGP", "Industry: Process", "Fossil Industry", 
+                                              "Fossil Electricity", "BECCS Electricity", "BECCS Industry", "DACCS"))), 
+         stat = "identity", inherit.aes = FALSE, width = 0.35, color = "black", size = 0.2) 
+```
+使用 RColorBrewer 提供的调色板 "Set2" 给不同部门分配颜色。
+```r
+scale_fill_brewer(palette = "Set2") 
+```
+添加图表标题和坐标轴标签并限制 x 轴范围
+```r
+labs(title = "", x = "Year", y = "Operational capacity and planned additions, Gt/yr") +
+xlim(2001.8, 2022.6) +
+```
+定制图表样式
+```r
+theme_bw(base_size = 7) +
+theme(panel.grid.minor.x = element_blank(), #去掉次网格线
+      legend.title = element_blank(), #移除图例标题
+      legend.position = "bottom", #将图例放在底部
+      legend.text = element_text(size = 7), #调整图例文本大小
+      panel.grid.major.y = element_blank()) + #去掉 y 轴的主网格线
+```
+
+最终的代码版本可以在[time_series_code.R](code/time_series_code.R)看到，所绘制的时序图如下图所示。
+
+![image](images/time_series_PanelA.png)
 
 
 ### 3.2 空间数据可视化
