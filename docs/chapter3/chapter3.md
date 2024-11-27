@@ -134,34 +134,74 @@ theme(panel.grid.minor.x = element_blank(), #去掉次网格线
 
 
 ### 3.2 空间数据可视化
-R与Python可以进行空间数据可视化的分析。
-
-在Python中，工具如Pandas常用于通用数据分析，包括基本统计、数据透视表、模式匹配以及将数据导出为各种格式。而Geopandas进一步扩展了这些功能，专注于地理空间数据，支持地图绘制和基础的空间分析，例如空间连接和表格与地理特征的集成。
-
-Python工具如Pandas可用于常规数据分析，涵盖基本统计、数据透视、模式匹配和数据格式转换。对于地理空间数据，Geopandas在Pandas基础上引入了空间数据结构，支持：
-
-    地图绘制：如点、线、面等几何图形的可视化。
-    空间分析：例如空间连接、缓冲区分析，以及表格数据与地理特征的结合。
 
 
+空间数据的可视化是一个较为专业的领域，我们可以在各种地方看到形式非常复杂的空间可视化图片。这类图片很多是采用了多工具联合的方法，例如在python进行可视化以后，再放到Illustrator中进行图片的二次修改。
+例如，像是这样的图片，,就是多轮工具共同开发的结果。
+![image](images/map_01.jpg)
 
+R与Python都可以进行空间数据可视化的分析。在Python中，Geopandas和geoplot进一步扩展了Pandas的数据分析功能，支持地图绘制和基础的空间分析。Geoplot是基于 Geopandas 的高级地理数据可视化库，支持投影、点、线、多边形等丰富的可视化效果。  
+在R方面，ggplot2和sf在地理空间可视化领域表现也尤为出色。
 
-在R方面，工具如dplyr和tidyr擅长数据表的重塑和子集选择。而在地理空间可视化领域，ggplot2和sf（Simple Features）尤为出色：
+我们就拿Python举例，在geoplot的[原生库](https://github.com/ResidentMario/geoplot-data)中，我们可以找到[美国大陆边界数据](code/contiguous-usa.geojson)与[美国城市数据](usa-cities.geojson)（包括海拔高度）。两者都为GeoJSON 格式。
 
-    高质量可视化：ggplot2以其美观、可高度定制的图表而闻名，并提供多种模板和配色方案。
-    分层式图形语法：这种方法支持按步骤构建可视化图表，通过添加注释和统计变换层来丰富图表。
-    与R Markdown的集成：能够无缝生成全面的报告和展示文档。
+我们的目标是在地图上展示美国大陆城市的位置及其海拔高度，并通过颜色和点大小传达数据信息。以下代码展示了如何加载数据并生成地图:
 
-工具选择的考量
+首先导入必要的库，加载两个数据文件
+```python
+import geopandas as gpd  # 地理数据操作库
+import geoplot as gplt  # 高级地理数据可视化库
+import matplotlib.pyplot as plt  # 基础绘图库
 
-尽管这些R工具提供了精致的可视化能力，但它们主要面向R生态系统用户，更注重可视化而非空间数据操作。如果项目既需要初步数据可视化，又涉及后续的高级分析（如机器学习任务），在R与Python之间频繁切换可能会变得繁琐。
+# 1. 加载美国大陆州边界数据
+contiguous_usa = gpd.read_file("contiguous-usa.geojson")  # GeoJSON 文件路径
+print(contiguous_usa.head())  # 查看前几行数据结构
 
-掌握Python中的地理空间可视化的理由
+# 2. 加载美国城市数据
+usa_cities = gpd.read_file("usa-cities.geojson")  # GeoJSON 文件路径
+print(usa_cities.head())  # 查看前几行数据结构
+```
 
-对于数据科学家，特别是处理大型独立项目的研究者来说，掌握R中的地理空间可视化可能显著优化工作流程。这可以在初步数据分析阶段创建复杂且视觉吸引力强的地图，而无需在不同编程环境间切换。当可视化不仅是一个前期步骤，而是在整个项目生命周期中持续需求时，这种技能尤为有用。
+在地图中，我们只需要展示美国大陆的城市，因此需要剔除夏威夷（HI）、阿拉斯加（AK）和波多黎各（PR）的数据。
+```python
+# 筛选出美国大陆的城市数据
+continental_usa_cities = usa_cities.query('STATE not in ["HI", "AK", "PR"]')
+print(continental_usa_cities.head())  # 确认筛选结果
+```
+然后我们绘制州边界和城市点。用浅灰色显示美国大陆的州边界，根据城市海拔高度调整点的大小和颜色。
+```python
+# 创建一个图形和子图，使用 PlateCarree 投影绘制地图
+fig, ax = plt.subplots(figsize=(14, 10), subplot_kw={'projection': gplt.crs.PlateCarree()})
 
-最终，在Python的Geopandas和R的ggplot2与sf之间的选择取决于项目的具体需求和用户对每种语言的熟悉程度。Python提供了直接且集成的工作方式，而R强大的可视化工具则无可匹敌。对于需要通过可视化讲述复杂地理空间数据故事的项目来说，它们是值得任何数据科学家掌握的宝贵工具。
+# 绘制美国大陆州边界
+gplt.polyplot(
+    contiguous_usa,            # 数据源
+    edgecolor="white",         # 州边界颜色
+    facecolor="lightgray",     # 州填充颜色
+    ax=ax                      # 指定绘图的子图
+)
 
+```
+我们将使用 pointplot 方法绘制城市点。点的颜色表示城市的海拔高度，点的大小根据海拔高度调整。
+```python
+# 在地图上绘制城市点
+gplt.pointplot(
+    continental_usa_cities,    # 数据源
+    ax=ax,                     # 指定绘图的子图
+    hue="ELEV_IN_FT",          # 按海拔高度着色
+    cmap="viridis",            # 使用颜色渐变
+    scheme="quantiles",        # 按分位数分类
+    scale="ELEV_IN_FT",        # 按海拔调整点大小
+    limits=(1, 10),            # 点大小范围
+    legend=True,               # 显示图例
+    legend_var="hue",          # 图例按颜色分组
+    legend_kwargs={"frameon": False, "fontsize": 12}  # 图例样式
+)
+
+```
+最终的完整代码可以在[USA_cities_elevation.ipynb](code/USA_cities_elevation.ipynb)中找到。可视化的结果如下图所示：
+
+![image](images/elevation_map_02.png)
 
 
 ### 3.3 高维数据可视化
