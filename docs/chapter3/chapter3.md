@@ -332,6 +332,8 @@ def plot_pca_results(data, explained_variance):
 完整的代码可见[PCA of Iris Dataset with Marginal Density.ipynb](code/PCA%20of%20Iris%20Dataset%20with%20Marginal%20Density.ipynb)
 
 
+<br/>
+<br/>
 
 <div style="border: 1px solid black; padding: 10px; border-radius: 5px;">
 Q&A：
