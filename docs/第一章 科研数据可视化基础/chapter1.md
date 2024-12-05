@@ -32,7 +32,7 @@
 这两篇文章:  
 [Can you accurately read a graph? ](https://pursuit.unimelb.edu.au/articles/can-you-accurately-read-a-graph)  
 [Do you know the correct way to read a graph?](https://blog.cambridgecoaching.com/do-you-know-the-correct-way-to-read-a-graph)  
-都是教大家如何做一个好的读者的，大家可以从这里入手，来学习如何做一个好的绘图者。
+都是教大家如何做一个好的读者的。我们可以从这里入手，再学习如何做一个好的绘图者。
 
 
 
@@ -52,7 +52,7 @@
 
 在上图中，所有图表被分为了四类：**对比、关系、组织和分布**。我们可以根据数据的类型来定位到自己合适那些图，或者排除一些可能对我们帮助没有那么大的图。
 
-为了更加动态的对比他们的区别，可以参考[1 dataset 100 visualizations](https://100.datavizproject.com/)这个网站，上面展示了一组简单数据的100种不同图表化的可视化效果。
+为了更加动态地比对他们的区别，可以参考[1 dataset 100 visualizations](https://100.datavizproject.com/)这个网站，上面展示了一组简单数据的100种不同图表化的可视化效果。
 
 
 根据上面的分类，我们可以大概对比一下各种图表类型的优劣：
